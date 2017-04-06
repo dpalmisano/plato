@@ -1,0 +1,7 @@
+# add tests
+# add logging
+# add to git
+# add more get endpoints (last insert, version, max count)
+# pass env variables to configuration
+# deploy to ECR / ECS
+# let it run for a week
