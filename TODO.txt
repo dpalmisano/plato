@@ -1,6 +1,6 @@
 # add tests
 # add logging
-# add to git
+# remove hardcoded london bounding box
 # add more get endpoints (last insert, version, max count)
 # pass env variables to configuration
 # deploy to ECR / ECS
