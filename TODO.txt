@@ -1,9 +1,9 @@
-# add tests
+# pass env variables to configuration
+# finish tests
 # remove hardcoded london bounding box
 # version from git
 # version rest endpoint
 # json as return objects
 # add more get endpoints (last insert, version, max count)
-# pass env variables to configuration
 # deploy to ECR / ECS
 # let it run for a week
