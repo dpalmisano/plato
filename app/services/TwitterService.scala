@@ -3,6 +3,7 @@ package services
 import javax.inject.{Inject, Singleton}
 
 import com.google.inject.ImplementedBy
+import play.api.Logger
 import twitter4j.{FilterQuery, TwitterStream}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -28,11 +29,14 @@ trait TwitterService {
 
   import TwitterService._
 
+  val log = Logger("twitter-service")
+
   def twitterStream: TwitterStream
   def twitterListener: TwitterListener
   implicit def context: ExecutionContext
 
   def start(): Future[TwitterServiceStartStatus] = {
+    log.info("starting listening to Twitter")
     twitterStream.addListener(twitterListener)
 
     /**
@@ -47,6 +51,7 @@ trait TwitterService {
   }
 
   def stop(): Future[TwitterServiceStopStatus] = {
+    log.info("stop listening to Twitter")
     twitterStream.cleanUp()
     twitterStream.shutdown()
     Future.successful(TwitterServiceStopStatus.Successful)

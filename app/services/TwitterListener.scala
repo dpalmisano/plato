@@ -4,12 +4,15 @@ import javax.inject.Inject
 
 import com.google.inject.{ImplementedBy, Singleton}
 import models.{Drop, DropRepository}
+import play.api.Logger
 import twitter4j.{StallWarning, Status, StatusDeletionNotice, StatusListener}
 
 @ImplementedBy(classOf[TwitterListenerImpl])
 trait TwitterListener extends StatusListener {
 
   def dropRepository: DropRepository
+
+  private val log = Logger("twitter-listener-log")
 
   override def onStallWarning(warning: StallWarning): Unit = ???
 
@@ -22,7 +25,7 @@ trait TwitterListener extends StatusListener {
     if(drop.isGeolocalised) {
       val insertResult = dropRepository.insert(drop)
       insertResult.failed.foreach { t =>
-        println(t.getMessage)
+        log.error(s"error while inserting drop ${drop.readable} into repo", t)
       }
       insertResult.get
     }

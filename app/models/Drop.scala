@@ -48,7 +48,7 @@ trait DropRepository {
 
 trait DropRepositoryTrait extends DropRepository {
 
-  val log = Logger("repo")
+  val log = Logger("drop-repository")
 
   val database: Database
 
@@ -58,11 +58,9 @@ trait DropRepositoryTrait extends DropRepository {
       val roundLat = BigDecimal(point.lat).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
       val roundLong = BigDecimal(point.long).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
       val pointStr = s"POINT($roundLong $roundLat)"
-      println("[sql] before")
-        val result = SQL""" INSERT INTO tweet (id, created_at, text, point, lang, gid, gname) SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
-      println(result)
+      log.info(s"inserting drop ${drop.readable}")
+      SQL""" INSERT INTO tweet (id, created_at, text, point, lang, gid, gname) SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
     }
-    println("[sql] after")
     ()
   }
 }

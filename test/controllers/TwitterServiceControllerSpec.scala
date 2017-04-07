@@ -82,6 +82,4 @@ with ScalaFutures {
     contentAsString(result) shouldEqual "isr"
   }
 
-
-
 }

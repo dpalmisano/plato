@@ -19,14 +19,14 @@ trait TwitterServiceControllerTrait extends Controller {
 
   implicit val context: ExecutionContext
 
-  val log = Logger("twitter-service-controller")
-
   def twitterService: TwitterService
 
   def start: Action[AnyContent] = Action.async {
     twitterService.start().map {
       case TwitterServiceStartStatus.Successful => Ok("yo")
-      case TwitterServiceStartStatus.Failed     => InternalServerError("isr")
+      case TwitterServiceStartStatus.Failed     => {
+        InternalServerError("isr")
+      }
     }
   }
 

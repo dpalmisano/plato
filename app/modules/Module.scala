@@ -1,13 +1,16 @@
 package modules
 
 import com.google.inject.AbstractModule
+import play.api.Logger
 import twitter4j.conf.{Configuration, ConfigurationBuilder}
 import twitter4j.{TwitterStream, TwitterStreamFactory}
 
 object TwitterStreamFactory {
 
+  val log = Logger("twitter-stream-factory")
+
   val twitterStream: TwitterStream = {
-    println("creating tiwtter")
+    log.info("creating twitter client")
     val configuration: Configuration = new ConfigurationBuilder().setDebugEnabled(true)
       .setOAuthConsumerKey("YLvJsmRwEYpLwmJ1mtVwHeCB2")
       .setOAuthConsumerSecret("wG4VafHZAwnUUpct1oPTArQrPBrboHFJt4vHyJ4dR67rMsJxEN")
