@@ -1,20 +1,32 @@
 package controllers
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+
+import org.scalatest.mock.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
-import play.api.test.Helpers._
-import org.scalatest.mock.MockitoSugar
-import play.api.test.FakeRequest
-import services.TwitterService
 
-import scala.concurrent.ExecutionContext
+import org.mockito.Mockito.when
+
+import play.api.test.Helpers._
+import play.api.test.FakeRequest
+
+import services.TwitterService
 
 class TwitterServiceControllerSpec
 extends FlatSpec
 with Matchers
 with MockitoSugar
 with ScalaFutures {
+
+  import TwitterService._
+
+  implicit val actorSystem = ActorSystem()
+  implicit val materializer = ActorMaterializer()
 
   def testController(mockTwitterService: TwitterService) =
     new TwitterServiceControllerTrait {
@@ -24,12 +36,26 @@ with ScalaFutures {
 
   "TwitterServiceController" should "start listening to Twitter" in {
     val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.start())
+      .thenReturn(Future.successful(TwitterServiceStartStatus.Successful))
     val controller = testController(mockTwitterService)
 
     val request = FakeRequest(GET, "/start")
     val result = call(controller.start, request)
     status(result) shouldEqual OK
+    contentAsString(result) shouldEqual "yo"
+  }
 
+  it should "stop listening to Twitter" in {
+    val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.stop())
+      .thenReturn(Future.successful(TwitterServiceStopStatus.Successful))
+    val controller = testController(mockTwitterService)
+
+    val request = FakeRequest(GET, "/stop")
+    val result = call(controller.stop, request)
+    status(result) shouldEqual OK
+    contentAsString(result) shouldEqual "stopped"
   }
 
 }

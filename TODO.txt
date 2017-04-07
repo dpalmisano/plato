@@ -1,6 +1,7 @@
 # add tests
 # add logging
 # remove hardcoded london bounding box
+# json as return objects
 # add more get endpoints (last insert, version, max count)
 # pass env variables to configuration
 # deploy to ECR / ECS
