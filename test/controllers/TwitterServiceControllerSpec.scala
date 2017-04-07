@@ -46,6 +46,18 @@ with ScalaFutures {
     contentAsString(result) shouldEqual "yo"
   }
 
+  it should "return INTERNAL_SERVER_ERROR when twitter service start fails" in {
+    val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.start())
+      .thenReturn(Future.successful(TwitterServiceStartStatus.Failed))
+    val controller = testController(mockTwitterService)
+
+    val request = FakeRequest(GET, "/start")
+    val result = call(controller.start, request)
+    status(result) shouldEqual INTERNAL_SERVER_ERROR
+    contentAsString(result) shouldEqual "isr"
+  }
+
   it should "stop listening to Twitter" in {
     val mockTwitterService = mock[TwitterService]
     when(mockTwitterService.stop())
@@ -57,5 +69,19 @@ with ScalaFutures {
     status(result) shouldEqual OK
     contentAsString(result) shouldEqual "stopped"
   }
+
+  it should "return INTERNAL_SERVER_ERROR when twitter service stop fails" in {
+    val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.stop())
+      .thenReturn(Future.successful(TwitterServiceStopStatus.Failed))
+    val controller = testController(mockTwitterService)
+
+    val request = FakeRequest(GET, "/stop")
+    val result = call(controller.stop, request)
+    status(result) shouldEqual INTERNAL_SERVER_ERROR
+    contentAsString(result) shouldEqual "isr"
+  }
+
+
 
 }

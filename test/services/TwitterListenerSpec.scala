@@ -39,7 +39,6 @@ with MockitoSugar {
     status
   }
 
-
   "TwitterListener" should "insert a drop into the repository" in {
     val mockDropRepository = mock[DropRepository]
     when(mockDropRepository.insert(any[Drop])).thenReturn(Success(()))
