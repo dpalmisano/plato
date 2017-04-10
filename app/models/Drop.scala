@@ -10,7 +10,9 @@ import play.api.Logger
 
 import scala.util.Try
 
-case class GeoPoint(lat: Double, long: Double)
+case class GeoPoint(lat: Double, long: Double) {
+  override def toString = s"[$lat, $long]"
+}
 
 case class Drop(
   id: Long,
@@ -19,7 +21,7 @@ case class Drop(
   geoPoint: Option[GeoPoint],
   lang: String
 ) {
-  def readable: String = s"$id-$createdAt-$lang-$geoPoint"
+  def readable: String = s"$id-$createdAt-$lang-${geoPoint}"
   def isGeolocalised: Boolean = geoPoint.isDefined
 }
 
