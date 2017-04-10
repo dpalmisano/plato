@@ -20,6 +20,9 @@ libraryDependencies ++= Seq(
 
 enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
+javaOptions += "-Dconfig.resource=test.conf"
+javaOptions += "-Dlogger.resource=logback-test.xml"
+
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.dpalmisano.controllers._"
 
