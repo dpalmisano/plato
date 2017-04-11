@@ -1,5 +1,7 @@
-# pass env variables to configuration
+# use java.time instead of util dates when dealing with Drops
+# refactor Drop to use Tweet and GeoTweet
 # finish tests
+# check that env variables to configuration works
 # remove hardcoded london bounding box
 # version from git
 # version rest endpoint
