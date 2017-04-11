@@ -6,6 +6,8 @@ import com.google.inject.{ImplementedBy, Inject}
 import play.api.db.Database
 import twitter4j.Status
 import anorm._
+import org.postgresql.geometric.PGpoint
+import anorm.SqlParser._
 import play.api.Logger
 
 import scala.util.Try
@@ -21,7 +23,7 @@ case class Drop(
   geoPoint: Option[GeoPoint],
   lang: String
 ) {
-  def readable: String = s"$id-$createdAt-$lang-${geoPoint}"
+  def readable: String = s"$id-$createdAt-$lang-$geoPoint"
   def isGeolocalised: Boolean = geoPoint.isDefined
 }
 
@@ -46,6 +48,7 @@ object Drop {
 @ImplementedBy(classOf[DropRepositoryImpl])
 trait DropRepository {
   def insert(drop: Drop): Try[Unit]
+  def findById(dropId: Long): Try[Drop]
 }
 
 trait DropRepositoryTrait extends DropRepository {
@@ -61,10 +64,42 @@ trait DropRepositoryTrait extends DropRepository {
       val roundLong = BigDecimal(point.long).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
       val pointStr = s"POINT($roundLong $roundLat)"
       log.info(s"inserting drop ${drop.readable}")
-      SQL""" INSERT INTO tweet (id, created_at, text, point, lang, gid, gname) SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
+      SQL"""INSERT INTO tweet (id, created_at, text, point, lang, gid, gname) SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
     }
     ()
   }
+
+  implicit def columnToPGPoint: Column[PGpoint] =
+    Column.nonNull1 { (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case pgpoint: PGpoint => Right(pgpoint)
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: " +
+          s"${value.asInstanceOf[AnyRef].getClass} to PGPoint for column $qualified"))
+      }
+    }
+
+  val dropParser =
+    get[Long]("id") ~
+    get[Date]("created_at") ~
+    get[String]("text") ~
+    get[PGpoint]("point") ~
+    get[String]("lang") map {
+      case id ~ createdAt ~ text ~ point ~ lang =>
+        Drop(id, createdAt, text, Some(GeoPoint(point.y, point.x)), lang)
+    }
+
+  override def findById(dropId: Long):Try[Drop] = Try {
+    database.withConnection { implicit  conn =>
+      log.info(s"retrieving drop with id $dropId")
+      SQL"""
+        SELECT id, created_at, text, point, lang
+        FROM Tweet
+        WHERE id = $dropId
+      """.as(dropParser.*).head
+    }
+  }
+
 }
 
 class DropRepositoryImpl @Inject()

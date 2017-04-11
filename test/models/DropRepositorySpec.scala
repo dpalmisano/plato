@@ -22,12 +22,25 @@ with MockitoSugar {
       block(repository)
   }
 
-  "DropRepository" should "insert a drop" in withRepository {
+  val testDropId = 1
+  val testDrop = Drop(
+    testDropId,
+    new Date(),
+    "test-text",
+    Some(GeoPoint(51.4183, -0.3055)),
+    "test-lang"
+  )
+
+  "DropRepository" should "insert a drop and retrieve it by id" in withRepository {
     repository =>
-      val drop = Drop(1, new Date(), "test-text", Some(GeoPoint(1.0, 2.0)), "test-lang")
-      val insertResult = repository.insert(drop)
+      val insertResult = repository.insert(testDrop)
 
       insertResult should be a 'success
+
+      val findResult = repository.findById(testDropId)
+      findResult should be a 'success
+      findResult.get.createdAt shouldEqual testDrop.createdAt
+      findResult.get shouldEqual testDrop
   }
 
 }
