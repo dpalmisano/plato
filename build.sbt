@@ -18,7 +18,8 @@ libraryDependencies ++= Seq(
   "org.postgresql" % "postgresql" % "42.0.0"
 )
 
-enablePlugins(JavaServerAppPackaging, DockerPlugin)
+enablePlugins(JavaServerAppPackaging, DockerPlugin, GitVersioning, GitBranchPrompt)
+git.useGitDescribe := true
 
 javaOptions += "-Dconfig.resource=test.conf"
 javaOptions += "-Dlogger.resource=logback-test.xml"
