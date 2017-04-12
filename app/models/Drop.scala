@@ -48,7 +48,7 @@ object Drop {
 @ImplementedBy(classOf[DropRepositoryImpl])
 trait DropRepository {
   def insert(drop: Drop): Try[Unit]
-  def findById(dropId: Long): Try[Drop]
+  def findById(dropId: Long): Try[Option[Drop]]
 }
 
 trait DropRepositoryTrait extends DropRepository {
@@ -90,14 +90,14 @@ trait DropRepositoryTrait extends DropRepository {
         Drop(id, createdAt, text, Some(GeoPoint(point.y, point.x)), lang)
     }
 
-  override def findById(dropId: Long):Try[Drop] = Try {
+  override def findById(dropId: Long):Try[Option[Drop]] = Try {
     database.withConnection { implicit  conn =>
       log.info(s"retrieving drop with id $dropId")
       SQL"""
         SELECT id, created_at, text, point, lang
         FROM Tweet
         WHERE id = $dropId
-      """.as(dropParser.*).head
+      """.as(dropParser.*).headOption
     }
   }
 
