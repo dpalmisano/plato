@@ -1,6 +1,5 @@
 # refactor Drop to use Tweet and GeoTweet
 # finish tests
-# version from git
 # check that env variables to configuration works
 # remove hardcoded london bounding box
 # version rest endpoint

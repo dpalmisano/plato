@@ -1,9 +1,7 @@
 name := """plato"""
 organization := "com.dpalmisano"
 
-version := "1.0-SNAPSHOT"
-
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, BuildInfoPlugin, JavaServerAppPackaging, DockerPlugin, GitVersioning, GitBranchPrompt)
 
 scalaVersion := "2.11.8"
 
@@ -18,7 +16,6 @@ libraryDependencies ++= Seq(
   "org.postgresql" % "postgresql" % "42.0.0"
 )
 
-enablePlugins(JavaServerAppPackaging, DockerPlugin, GitVersioning, GitBranchPrompt)
 git.useGitDescribe := true
 
 git.baseVersion := "0.0.0"
@@ -26,8 +23,17 @@ git.baseVersion := "0.0.0"
 javaOptions += "-Dconfig.resource=test.conf"
 javaOptions += "-Dlogger.resource=logback-test.xml"
 
-// Adds additional packages into Twirl
-//TwirlKeys.templateImports += "com.dpalmisano.controllers._"
+buildInfoKeys ++= Seq[BuildInfoKey](
+  BuildInfoKey.action("commit") {
+    import scala.sys.process._
+    "git rev-parse HEAD".!!.stripSuffix("\n")
+  },
+  BuildInfoKey.action("author") {
+    sys.env("LOGNAME")
+  }
+)
 
-// Adds additional packages into conf/routes
-// play.sbt.routes.RoutesKeys.routesImport += "com.dpalmisano.binders._"
+buildInfoOptions += BuildInfoOption.BuildTime
+buildInfoOptions += BuildInfoOption.Traits("BuildInfoBase")
+
+buildInfoPackage := "controllers.buildinfo"
