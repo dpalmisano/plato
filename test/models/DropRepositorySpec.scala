@@ -1,6 +1,6 @@
 package models
 
-import java.util.Date
+import java.time.LocalDateTime
 
 import org.scalatest.{Matchers, OptionValues, TryValues}
 import org.scalatest.concurrent.Eventually
@@ -25,7 +25,7 @@ with MockitoSugar {
   val testDropId = 1
   val testDrop = Drop(
     testDropId,
-    new Date(),
+    LocalDateTime.now(),
     "test-text",
     Some(GeoPoint(51.4183, -0.3055)),
     "test-lang"

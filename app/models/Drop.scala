@@ -1,6 +1,6 @@
 package models
 
-import java.util.Date
+import java.time.{LocalDateTime, ZoneId}
 
 import com.google.inject.{ImplementedBy, Inject}
 import play.api.db.Database
@@ -18,7 +18,7 @@ case class GeoPoint(lat: Double, long: Double) {
 
 case class Drop(
   id: Long,
-  createdAt: Date,
+  createdAt: LocalDateTime,
   text: String,
   geoPoint: Option[GeoPoint],
   lang: String
@@ -37,7 +37,7 @@ object Drop {
     }
     Drop(
       status.getId,
-      status.getCreatedAt,
+      status.getCreatedAt.toInstant.atZone(ZoneId.of("Z")).toLocalDateTime,
       status.getText,
       geoPoint,
       status.getLang
@@ -64,7 +64,8 @@ trait DropRepositoryTrait extends DropRepository {
       val roundLong = BigDecimal(point.long).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
       val pointStr = s"POINT($roundLong $roundLat)"
       log.info(s"inserting drop ${drop.readable}")
-      SQL"""INSERT INTO tweet (id, created_at, text, point, lang, gid, gname) SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
+      SQL"""INSERT INTO tweet (id, created_at, text, point, lang, gid, gname)
+           SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
     }
     ()
   }
@@ -81,7 +82,7 @@ trait DropRepositoryTrait extends DropRepository {
 
   val dropParser =
     get[Long]("id") ~
-    get[Date]("created_at") ~
+    get[LocalDateTime]("created_at") ~
     get[String]("text") ~
     get[PGpoint]("point") ~
     get[String]("lang") map {
