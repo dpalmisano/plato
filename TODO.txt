@@ -1,8 +1,7 @@
+# check that env variables to configuration works
 # refactor Drop to use Tweet and GeoTweet
 # finish tests
-# check that env variables to configuration works
 # remove hardcoded london bounding box
-# version rest endpoint
 # json as return objects
 # add more get endpoints (last insert, version, max count)
 # deploy to ECR / ECS
