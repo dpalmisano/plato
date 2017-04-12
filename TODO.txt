@@ -1,4 +1,3 @@
-# use java.time instead of util dates when dealing with Drops
 # refactor Drop to use Tweet and GeoTweet
 # finish tests
 # check that env variables to configuration works
