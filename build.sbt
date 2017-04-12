@@ -21,6 +21,8 @@ libraryDependencies ++= Seq(
 enablePlugins(JavaServerAppPackaging, DockerPlugin, GitVersioning, GitBranchPrompt)
 git.useGitDescribe := true
 
+git.baseVersion := "0.0.0"
+
 javaOptions += "-Dconfig.resource=test.conf"
 javaOptions += "-Dlogger.resource=logback-test.xml"
 

@@ -1,8 +1,8 @@
 # refactor Drop to use Tweet and GeoTweet
 # finish tests
+# version from git
 # check that env variables to configuration works
 # remove hardcoded london bounding box
-# version from git
 # version rest endpoint
 # json as return objects
 # add more get endpoints (last insert, version, max count)
