@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.docker._
+
 name := """plato"""
 organization := "com.dpalmisano"
 
@@ -37,3 +39,14 @@ buildInfoOptions += BuildInfoOption.BuildTime
 buildInfoOptions += BuildInfoOption.Traits("BuildInfoBase")
 
 buildInfoPackage := "controllers.buildinfo"
+
+dockerCommands := Seq(
+  Cmd("FROM", "openjdk:latest"),
+  Cmd("MAINTAINER", "dpalmisano@gmail.com"),
+  Cmd("WORKDIR", "/opt/docker"),
+  Cmd("ADD", "opt",  "/opt"),
+  Cmd("RUN", "chown", "-R", "daemon:daemon", "."),
+  Cmd("USER", "daemon"),
+  Cmd("ENTRYPOINT", "bin/plato", "-Dconfig.resource=prod.conf"),
+  ExecCmd("CMD")
+)
