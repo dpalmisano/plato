@@ -51,6 +51,6 @@ dockerCommands := Seq(
   Cmd("RUN", "apt-get", "install", "ntp", "-y"),
   Cmd("RUN", "ntpd", "-gq"),
   Cmd("USER", "daemon"),
-  Cmd("ENTRYPOINT", "bin/plato", "-Dconfig.resource=prod.conf"),
+  Cmd("ENTRYPOINT", "bin/plato", "-Dconfig.resource=prod.conf", "-Dlogger.resource=logback-prod.xml"),
   ExecCmd("CMD")
 )
