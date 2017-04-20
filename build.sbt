@@ -46,6 +46,10 @@ dockerCommands := Seq(
   Cmd("WORKDIR", "/opt/docker"),
   Cmd("ADD", "opt",  "/opt"),
   Cmd("RUN", "chown", "-R", "daemon:daemon", "."),
+  Cmd("RUN", "apt-get", "update"),
+  Cmd("RUN", "apt-get", "upgrade", "-y"),
+  Cmd("RUN", "apt-get", "install", "ntp", "-y"),
+  Cmd("RUN", "ntpd", "-gq"),
   Cmd("USER", "daemon"),
   Cmd("ENTRYPOINT", "bin/plato", "-Dconfig.resource=prod.conf"),
   ExecCmd("CMD")

@@ -1,4 +1,3 @@
-# check that env variables to configuration works
 # refactor Drop to use Tweet and GeoTweet
 # finish tests
 # remove hardcoded london bounding box
