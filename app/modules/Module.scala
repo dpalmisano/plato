@@ -1,7 +1,5 @@
 package modules
 
-import java.util.Calendar
-
 import com.google.inject.AbstractModule
 import play.api.Logger
 import twitter4j.conf.{Configuration, ConfigurationBuilder}
@@ -13,7 +11,6 @@ object TwitterStreamFactory {
 
   val twitterStream: TwitterStream = {
     log.info("creating twitter client")
-    print("creating twitter on: " + Calendar.getInstance().getTime)
     val configuration: Configuration = new ConfigurationBuilder().setDebugEnabled(true)
       .setOAuthConsumerKey("")
       .setOAuthConsumerSecret("")
