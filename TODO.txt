@@ -1,4 +1,3 @@
-# fix insertion of a retweet - it causes primary key violation
 # refactor Drop to use Tweet and GeoTweet
 # finish tests
 # remove hardcoded london bounding box

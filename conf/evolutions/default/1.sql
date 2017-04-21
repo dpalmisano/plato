@@ -1,10 +1,14 @@
 # --- !Ups
 
+CREATE SEQUENCE IF NOT EXISTS tweet_id_seq;
+
 CREATE TABLE Tweet (
-    id BIGINT NOT NULL PRIMARY KEY,
+    id BIGINT NOT NULL DEFAULT NEXTVAL('tweet_id_seq') CONSTRAINT tweet_pkey PRIMARY KEY,
+    tweet_id BIGINT NOT NULL,
     created_at TIMESTAMP,
     text VARCHAR(255) NOT NULL,
     point POINT,
+    is_retweet BOOLEAN,
     lang VARCHAR(255),
     gid INTEGER,
     gname VARCHAR(255)

@@ -49,7 +49,7 @@ dockerCommands := Seq(
   Cmd("RUN", "apt-get", "update"),
   Cmd("RUN", "apt-get", "upgrade", "-y"),
   Cmd("RUN", "apt-get", "install", "ntp", "-y"),
-  Cmd("RUN", "ntpd", "-gq"),
+  Cmd("RUN", "ntpd", "-gq"), // this is needed to synch container system time, otherwise twitter auth won't work
   Cmd("USER", "daemon"),
   Cmd("ENTRYPOINT", "bin/plato", "-Dconfig.resource=prod.conf", "-Dlogger.resource=logback-prod.xml"),
   ExecCmd("CMD")

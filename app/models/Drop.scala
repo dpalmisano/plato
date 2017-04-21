@@ -21,9 +21,10 @@ case class Drop(
   createdAt: LocalDateTime,
   text: String,
   geoPoint: Option[GeoPoint],
+  isRetweet: Boolean,
   lang: String
 ) {
-  def readable: String = s"$id-$createdAt-$lang-$geoPoint"
+  def readable: String = s"$id-$createdAt-$lang-$isRetweet-$geoPoint"
   def isGeolocalised: Boolean = geoPoint.isDefined
 }
 
@@ -40,6 +41,7 @@ object Drop {
       status.getCreatedAt.toInstant.atZone(ZoneId.of("Z")).toLocalDateTime,
       status.getText,
       geoPoint,
+      status.isRetweet,
       status.getLang
     )
   }
@@ -48,7 +50,7 @@ object Drop {
 @ImplementedBy(classOf[DropRepositoryImpl])
 trait DropRepository {
   def insert(drop: Drop): Try[Unit]
-  def findById(dropId: Long): Try[Option[Drop]]
+  def findByTweetId(dropId: Long): Try[Option[Drop]]
 }
 
 trait DropRepositoryTrait extends DropRepository {
@@ -64,8 +66,8 @@ trait DropRepositoryTrait extends DropRepository {
       val roundLong = BigDecimal(point.long).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
       val pointStr = s"POINT($roundLong $roundLat)"
       log.info(s"inserting drop ${drop.readable}")
-      SQL"""INSERT INTO tweet (id, created_at, text, point, lang, gid, gname)
-           SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
+      SQL"""INSERT INTO tweet (tweet_id, created_at, text, point, is_retweet, lang, gid, gname)
+           SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.isRetweet}, ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
     }
     ()
   }
@@ -85,18 +87,19 @@ trait DropRepositoryTrait extends DropRepository {
     get[LocalDateTime]("created_at") ~
     get[String]("text") ~
     get[PGpoint]("point") ~
+    get[Boolean]("is_retweet") ~
     get[String]("lang") map {
-      case id ~ createdAt ~ text ~ point ~ lang =>
-        Drop(id, createdAt, text, Some(GeoPoint(point.y, point.x)), lang)
+      case id ~ createdAt ~ text ~ point ~ isRetweet ~ lang =>
+        Drop(id, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang)
     }
 
-  override def findById(dropId: Long):Try[Option[Drop]] = Try {
+  override def findByTweetId(tweetId: Long):Try[Option[Drop]] = Try {
     database.withConnection { implicit  conn =>
-      log.info(s"retrieving drop with id $dropId")
+      log.info(s"retrieving drop with tweet_id $tweetId")
       SQL"""
-        SELECT id, created_at, text, point, lang
+        SELECT id, created_at, text, point, is_retweet, lang
         FROM Tweet
-        WHERE id = $dropId
+        WHERE tweet_id = $tweetId
       """.as(dropParser.*).headOption
     }
   }

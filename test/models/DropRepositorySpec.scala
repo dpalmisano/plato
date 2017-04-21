@@ -23,14 +23,15 @@ with MockitoSugar {
       block(repository)
   }
 
-  val testDropId = 1
+  val testTweetId = 1
   val londonGeoPoint = GeoPoint(51.4183, -0.3055)
   val outSideOfLondonGeoPoint = GeoPoint(41.9002, 12.4648) // Rome
   val testLondonDrop = Drop(
-    testDropId,
+    testTweetId,
     LocalDateTime.now(),
     "test-text",
     Some(londonGeoPoint),
+    false,
     "test-lang"
   )
 
@@ -40,7 +41,7 @@ with MockitoSugar {
 
       insertResult should be a 'success
 
-      val findResult = repository.findById(testDropId)
+      val findResult = repository.findByTweetId(testTweetId)
       findResult should be a 'success
       findResult.get.get.createdAt shouldEqual testLondonDrop.createdAt
       findResult.get.get shouldEqual testLondonDrop
@@ -49,10 +50,11 @@ with MockitoSugar {
   it should "not insert a drop if doesn't fall within london" in withRepository {
     repository =>
       val testOutsideOfLondonDrop = Drop(
-        testDropId,
+        testTweetId,
         LocalDateTime.now(),
         "test-text",
         Some(outSideOfLondonGeoPoint),
+        false,
         "test-lang"
       )
 
@@ -60,7 +62,7 @@ with MockitoSugar {
 
       insertResult should be a 'success
 
-      val findResult = repository.findById(testDropId)
+      val findResult = repository.findByTweetId(testTweetId)
       findResult should be a 'success
       findResult.get shouldEqual None
   }
