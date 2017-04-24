@@ -1,5 +1,6 @@
-# add more get endpoints (last insert, version, max count)
+# add more get endpoints (max count, group by)
 # remove hardcoded london bounding box
 # json as return objects
+# general tidy up
 # deploy to ECR / ECS
 # let it run for a week
