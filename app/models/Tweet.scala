@@ -70,6 +70,7 @@ object Tweet {
 trait TweetRepository {
   def insert(drop: Tweet): Try[Unit]
   def findByTweetId(dropId: Long): Try[Option[GeoReferencedTweet]]
+  def lastInsert(): Try[LocalDateTime]
 }
 
 trait TweetRepositoryTrait extends TweetRepository {
@@ -77,6 +78,34 @@ trait TweetRepositoryTrait extends TweetRepository {
   val log = Logger("drop-repository")
 
   val database: Database
+
+  private implicit def columnToPGPoint: Column[PGpoint] =
+    Column.nonNull1 { (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case pgpoint: PGpoint => Right(pgpoint)
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: " +
+          s"${value.asInstanceOf[AnyRef].getClass} to PGPoint for column $qualified"))
+      }
+    }
+
+  private val geoReferencedTweetParser =
+      get[Long]("id") ~
+      get[LocalDateTime]("created_at") ~
+      get[String]("text") ~
+      get[PGpoint]("point") ~
+      get[Boolean]("is_retweet") ~
+      get[String]("lang") ~
+      get[String]("gname") map {
+      case id ~ createdAt ~ text ~ point ~ isRetweet ~ lang ~ gname =>
+        GeoReferencedTweet(id, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang, gname)
+    }
+
+  private val localDateTimeParser =
+    get[LocalDateTime]("created_at")  map {
+      case ldt: LocalDateTime => ldt
+      case _ => throw new IllegalStateException()
+    }
 
   override def insert(tweet: Tweet): Try[Unit] = Try {
     val point = tweet.geoPoint.get
@@ -91,29 +120,7 @@ trait TweetRepositoryTrait extends TweetRepository {
     ()
   }
 
-  implicit def columnToPGPoint: Column[PGpoint] =
-    Column.nonNull1 { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
-      value match {
-        case pgpoint: PGpoint => Right(pgpoint)
-        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: " +
-          s"${value.asInstanceOf[AnyRef].getClass} to PGPoint for column $qualified"))
-      }
-    }
-
-  val geoReferencedTweetParser =
-    get[Long]("id") ~
-    get[LocalDateTime]("created_at") ~
-    get[String]("text") ~
-    get[PGpoint]("point") ~
-    get[Boolean]("is_retweet") ~
-    get[String]("lang") ~
-    get[String]("gname") map {
-      case id ~ createdAt ~ text ~ point ~ isRetweet ~ lang ~ gname =>
-        GeoReferencedTweet(id, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang, gname)
-    }
-
-  override def findByTweetId(tweetId: Long):Try[Option[GeoReferencedTweet]] = Try {
+  override def findByTweetId(tweetId: Long): Try[Option[GeoReferencedTweet]] = Try {
     database.withConnection { implicit  conn =>
       log.info(s"retrieving drop with tweet_id $tweetId")
       SQL"""
@@ -121,6 +128,14 @@ trait TweetRepositoryTrait extends TweetRepository {
         FROM Tweet
         WHERE tweet_id = $tweetId
       """.as(geoReferencedTweetParser.*).headOption
+    }
+  }
+
+  override def lastInsert(): Try[LocalDateTime] = Try {
+    database.withConnection {  implicit conn =>
+      SQL"""
+           SELECT max(created_at) as created_at FROM tweet
+      """.as(localDateTimeParser.*).head
     }
   }
 

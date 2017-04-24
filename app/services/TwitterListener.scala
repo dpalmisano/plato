@@ -10,7 +10,7 @@ import twitter4j.{StallWarning, Status, StatusDeletionNotice, StatusListener}
 @ImplementedBy(classOf[TwitterListenerImpl])
 trait TwitterListener extends StatusListener {
 
-  def dropRepository: TweetRepository
+  def tweetRepository: TweetRepository
 
   private val log = Logger("twitter-listener-log")
 
@@ -23,7 +23,7 @@ trait TwitterListener extends StatusListener {
   override def onStatus(status: Status): Unit = {
     val drop = Tweet.fromStatus(status)
     if(drop.isGeolocalised) {
-      val insertResult = dropRepository.insert(drop)
+      val insertResult = tweetRepository.insert(drop)
       insertResult.failed.foreach { t =>
         log.error(s"error while inserting drop ${drop.readable} into repo", t)
       }
@@ -38,5 +38,5 @@ trait TwitterListener extends StatusListener {
 
 @Singleton
 class TwitterListenerImpl @Inject()
-(val dropRepository: TweetRepository)
+(val tweetRepository: TweetRepository)
 extends TwitterListener {}

@@ -26,7 +26,7 @@ with MockitoSugar {
   private val testLang = "test-lang"
 
   private def listener(mockDropRepository: TweetRepository) = new TwitterListener {
-    override val dropRepository = mockDropRepository
+    override val tweetRepository = mockDropRepository
   }
 
   def status(geoLocation: GeoLocation):Status = {
