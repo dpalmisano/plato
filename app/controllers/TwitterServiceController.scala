@@ -44,10 +44,10 @@ trait TwitterServiceControllerTrait extends Controller {
 
   def lastInsert: Action[AnyContent] = Action.async {
     val lastInsertFuture = Future {
-      tweetRepository.lastInsert()
+      tweetRepository.latest()
     }
     lastInsertFuture.map {
-      case Success(localDateTime) => Ok(localDateTime)
+      case Success(localDateTime) => Ok(localDateTime.toString)
       case Failure(t) => InternalServerError("shit")
     }
   }

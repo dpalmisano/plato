@@ -17,14 +17,14 @@ case class GeoPoint(lat: Double, long: Double) {
 }
 
 abstract class BaseTweet(
-  id: Long,
+  tweetId: Long,
   createdAt: LocalDateTime,
   text: String,
   geoPoint: Option[GeoPoint],
   isRetweet: Boolean,
   lang: String
 ) {
-  def readable: String = s"$id-$createdAt-$lang-$isRetweet-$geoPoint"
+  def readable: String = s"$tweetId-$createdAt-$lang-$isRetweet-$geoPoint"
   def isGeolocalised: Boolean = geoPoint.isDefined
 }
 
@@ -68,9 +68,9 @@ object Tweet {
 
 @ImplementedBy(classOf[TweetRepositoryImpl])
 trait TweetRepository {
-  def insert(drop: Tweet): Try[Unit]
-  def findByTweetId(dropId: Long): Try[Option[GeoReferencedTweet]]
-  def lastInsert(): Try[LocalDateTime]
+  def insert(tweet: Tweet): Try[Unit]
+  def findByTweetId(tweetId: Long): Try[Option[GeoReferencedTweet]]
+  def latest(): Try[LocalDateTime]
 }
 
 trait TweetRepositoryTrait extends TweetRepository {
@@ -90,15 +90,15 @@ trait TweetRepositoryTrait extends TweetRepository {
     }
 
   private val geoReferencedTweetParser =
-      get[Long]("id") ~
+      get[Long]("tweet_id") ~
       get[LocalDateTime]("created_at") ~
       get[String]("text") ~
       get[PGpoint]("point") ~
       get[Boolean]("is_retweet") ~
       get[String]("lang") ~
       get[String]("gname") map {
-      case id ~ createdAt ~ text ~ point ~ isRetweet ~ lang ~ gname =>
-        GeoReferencedTweet(id, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang, gname)
+      case tweetId ~ createdAt ~ text ~ point ~ isRetweet ~ lang ~ gname =>
+        GeoReferencedTweet(tweetId, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang, gname)
     }
 
   private val localDateTimeParser =
@@ -124,14 +124,14 @@ trait TweetRepositoryTrait extends TweetRepository {
     database.withConnection { implicit  conn =>
       log.info(s"retrieving drop with tweet_id $tweetId")
       SQL"""
-        SELECT id, created_at, text, point, is_retweet, lang, gname
+        SELECT tweet_id, created_at, text, point, is_retweet, lang, gname
         FROM Tweet
         WHERE tweet_id = $tweetId
       """.as(geoReferencedTweetParser.*).headOption
     }
   }
 
-  override def lastInsert(): Try[LocalDateTime] = Try {
+  override def latest(): Try[LocalDateTime] = Try {
     database.withConnection {  implicit conn =>
       SQL"""
            SELECT max(created_at) as created_at FROM tweet

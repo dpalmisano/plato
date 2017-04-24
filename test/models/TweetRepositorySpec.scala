@@ -77,4 +77,26 @@ with MockitoSugar {
       findResult.get shouldEqual None
   }
 
+  it should "get the createdAt of the latest inserted tweet" in withRepository {
+    repository =>
+      val secondTweetDate = testLondonTweet.createdAt.plusMinutes(1)
+      repository.insert(testLondonTweet) should be a 'success
+
+      val secondTweetId = 2
+      val secondTweet = Tweet(
+        secondTweetId,
+        secondTweetDate,
+        "test-text",
+        Some(londonGeoPoint),
+        false,
+        "test-lang"
+      )
+      repository.insert(secondTweet) should be a 'success
+
+      val findResult = repository.findByTweetId(secondTweetId)
+      findResult should be a 'success
+      findResult.get.get.id shouldEqual secondTweetId
+      findResult.get.get.createdAt shouldEqual secondTweetDate
+  }
+
 }

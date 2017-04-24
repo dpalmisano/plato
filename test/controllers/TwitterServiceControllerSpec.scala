@@ -2,19 +2,15 @@ package controllers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-
+import models.TweetRepository
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
-
 import org.mockito.Mockito.when
-
 import play.api.test.Helpers._
 import play.api.test.FakeRequest
-
 import services.TwitterService
 
 class TwitterServiceControllerSpec
@@ -31,6 +27,7 @@ with ScalaFutures {
   def testController(mockTwitterService: TwitterService) =
     new TwitterServiceControllerTrait {
       override val twitterService = mockTwitterService
+      override val tweetRepository = mock[TweetRepository]
       override implicit val context = global
   }
 
