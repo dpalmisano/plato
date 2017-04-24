@@ -67,12 +67,12 @@ object Tweet {
 }
 
 @ImplementedBy(classOf[TweetRepositoryImpl])
-trait DropRepository {
+trait TweetRepository {
   def insert(drop: Tweet): Try[Unit]
-  def findByTweetId(dropId: Long): Try[Option[Tweet]]
+  def findByTweetId(dropId: Long): Try[Option[GeoReferencedTweet]]
 }
 
-trait TweetRepositoryTrait extends DropRepository {
+trait TweetRepositoryTrait extends TweetRepository {
 
   val log = Logger("drop-repository")
 
@@ -101,25 +101,26 @@ trait TweetRepositoryTrait extends DropRepository {
       }
     }
 
-  val tweetParser =
+  val geoReferencedTweetParser =
     get[Long]("id") ~
     get[LocalDateTime]("created_at") ~
     get[String]("text") ~
     get[PGpoint]("point") ~
     get[Boolean]("is_retweet") ~
-    get[String]("lang") map {
-      case id ~ createdAt ~ text ~ point ~ isRetweet ~ lang =>
-        Tweet(id, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang)
+    get[String]("lang") ~
+    get[String]("gname") map {
+      case id ~ createdAt ~ text ~ point ~ isRetweet ~ lang ~ gname =>
+        GeoReferencedTweet(id, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang, gname)
     }
 
-  override def findByTweetId(tweetId: Long):Try[Option[Tweet]] = Try {
+  override def findByTweetId(tweetId: Long):Try[Option[GeoReferencedTweet]] = Try {
     database.withConnection { implicit  conn =>
       log.info(s"retrieving drop with tweet_id $tweetId")
       SQL"""
-        SELECT id, created_at, text, point, is_retweet, lang
+        SELECT id, created_at, text, point, is_retweet, lang, gname
         FROM Tweet
         WHERE tweet_id = $tweetId
-      """.as(tweetParser.*).headOption
+      """.as(geoReferencedTweetParser.*).headOption
     }
   }
 

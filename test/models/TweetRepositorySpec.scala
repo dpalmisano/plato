@@ -15,7 +15,7 @@ with TryValues
 with BeforeAndAfterAll
 with MockitoSugar {
 
-  def withRepository[T](block: (DropRepository) => T): T = withDatabase {
+  def withRepository[T](block: (TweetRepository) => T): T = withDatabase {
     testDatabase =>
       val repository = new TweetRepositoryTrait {
         override val database: Database = testDatabase
@@ -26,25 +26,35 @@ with MockitoSugar {
   val testTweetId = 1
   val londonGeoPoint = GeoPoint(51.4183, -0.3055)
   val outSideOfLondonGeoPoint = GeoPoint(41.9002, 12.4648) // Rome
-  val testLondonDrop = Tweet(
+  val testCreatedAt = LocalDateTime.now()
+  val testLondonTweet = Tweet(
     testTweetId,
-    LocalDateTime.now(),
+    testCreatedAt,
     "test-text",
     Some(londonGeoPoint),
     false,
     "test-lang"
   )
+  val testGeoReferencedTweet = GeoReferencedTweet(
+    testTweetId,
+    testCreatedAt,
+    "test-text",
+    Some(londonGeoPoint),
+    false,
+    "test-lang",
+    "Kingston upon Thames"
+  )
 
   "DropRepository" should "insert a drop and retrieve it by id" in withRepository {
     repository =>
-      val insertResult = repository.insert(testLondonDrop)
+      val insertResult = repository.insert(testLondonTweet)
 
       insertResult should be a 'success
 
       val findResult = repository.findByTweetId(testTweetId)
       findResult should be a 'success
-      findResult.get.get.createdAt shouldEqual testLondonDrop.createdAt
-      findResult.get.get shouldEqual testLondonDrop
+      findResult.get.get.createdAt shouldEqual testGeoReferencedTweet.createdAt
+      findResult.get.get shouldEqual testGeoReferencedTweet
   }
 
   it should "not insert a drop if doesn't fall within london" in withRepository {

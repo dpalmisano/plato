@@ -3,14 +3,14 @@ package services
 import javax.inject.Inject
 
 import com.google.inject.{ImplementedBy, Singleton}
-import models.{Tweet, DropRepository}
+import models.{Tweet, TweetRepository}
 import play.api.Logger
 import twitter4j.{StallWarning, Status, StatusDeletionNotice, StatusListener}
 
 @ImplementedBy(classOf[TwitterListenerImpl])
 trait TwitterListener extends StatusListener {
 
-  def dropRepository: DropRepository
+  def dropRepository: TweetRepository
 
   private val log = Logger("twitter-listener-log")
 
@@ -38,5 +38,5 @@ trait TwitterListener extends StatusListener {
 
 @Singleton
 class TwitterListenerImpl @Inject()
-(val dropRepository: DropRepository)
+(val dropRepository: TweetRepository)
 extends TwitterListener {}

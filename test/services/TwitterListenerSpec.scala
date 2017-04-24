@@ -12,7 +12,7 @@ import org.mockito.ArgumentMatchers.any
 
 import twitter4j.{ GeoLocation, Status }
 
-import models.{Tweet, DropRepository}
+import models.{Tweet, TweetRepository}
 
 class TwitterListenerSpec
 extends FlatSpec
@@ -25,7 +25,7 @@ with MockitoSugar {
   private val testText = "test-text"
   private val testLang = "test-lang"
 
-  private def listener(mockDropRepository: DropRepository) = new TwitterListener {
+  private def listener(mockDropRepository: TweetRepository) = new TwitterListener {
     override val dropRepository = mockDropRepository
   }
 
@@ -40,7 +40,7 @@ with MockitoSugar {
   }
 
   "TwitterListener" should "insert a drop into the repository" in {
-    val mockDropRepository = mock[DropRepository]
+    val mockDropRepository = mock[TweetRepository]
     when(mockDropRepository.insert(any[Tweet])).thenReturn(Success(()))
     val twitterListener = listener(mockDropRepository)
 
@@ -51,7 +51,7 @@ with MockitoSugar {
   }
 
   it should "not insert into the repository if the tweet is not geolocalised" in {
-    val mockDropRepository = mock[DropRepository]
+    val mockDropRepository = mock[TweetRepository]
     val twitterListener = listener(mockDropRepository)
 
     val mockStatus = status(null)
