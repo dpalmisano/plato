@@ -1,4 +1,3 @@
-# refactor Drop to use Tweet and GeoTweet
 # add more get endpoints (last insert, version, max count)
 # remove hardcoded london bounding box
 # json as return objects
