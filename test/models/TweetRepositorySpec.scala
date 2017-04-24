@@ -7,7 +7,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.mock.MockitoSugar
 import play.api.db.Database
 
-class DropRepositorySpec extends RepositorySpec("plato-test")
+class TweetRepositorySpec extends RepositorySpec("plato-test")
 with Matchers
 with Eventually
 with OptionValues
@@ -17,7 +17,7 @@ with MockitoSugar {
 
   def withRepository[T](block: (DropRepository) => T): T = withDatabase {
     testDatabase =>
-      val repository = new DropRepositoryTrait {
+      val repository = new TweetRepositoryTrait {
         override val database: Database = testDatabase
       }
       block(repository)
@@ -26,7 +26,7 @@ with MockitoSugar {
   val testTweetId = 1
   val londonGeoPoint = GeoPoint(51.4183, -0.3055)
   val outSideOfLondonGeoPoint = GeoPoint(41.9002, 12.4648) // Rome
-  val testLondonDrop = Drop(
+  val testLondonDrop = Tweet(
     testTweetId,
     LocalDateTime.now(),
     "test-text",
@@ -49,7 +49,7 @@ with MockitoSugar {
 
   it should "not insert a drop if doesn't fall within london" in withRepository {
     repository =>
-      val testOutsideOfLondonDrop = Drop(
+      val testOutsideOfLondonDrop = Tweet(
         testTweetId,
         LocalDateTime.now(),
         "test-text",

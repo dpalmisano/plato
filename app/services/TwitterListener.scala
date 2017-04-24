@@ -3,7 +3,7 @@ package services
 import javax.inject.Inject
 
 import com.google.inject.{ImplementedBy, Singleton}
-import models.{Drop, DropRepository}
+import models.{Tweet, DropRepository}
 import play.api.Logger
 import twitter4j.{StallWarning, Status, StatusDeletionNotice, StatusListener}
 
@@ -21,7 +21,7 @@ trait TwitterListener extends StatusListener {
   override def onScrubGeo(userId: Long, upToStatusId: Long): Unit = ???
 
   override def onStatus(status: Status): Unit = {
-    val drop = Drop.fromStatus(status)
+    val drop = Tweet.fromStatus(status)
     if(drop.isGeolocalised) {
       val insertResult = dropRepository.insert(drop)
       insertResult.failed.foreach { t =>

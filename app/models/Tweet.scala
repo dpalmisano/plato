@@ -16,7 +16,7 @@ case class GeoPoint(lat: Double, long: Double) {
   override def toString = s"[$lat, $long]"
 }
 
-case class Drop(
+abstract class BaseTweet(
   id: Long,
   createdAt: LocalDateTime,
   text: String,
@@ -28,46 +28,65 @@ case class Drop(
   def isGeolocalised: Boolean = geoPoint.isDefined
 }
 
-object Drop {
-  def fromStatus(status:Status): Drop = {
+case class Tweet(
+  id: Long,
+  createdAt: LocalDateTime,
+  text: String,
+  geoPoint: Option[GeoPoint],
+  isRetweet: Boolean,
+  lang: String
+) extends BaseTweet(id, createdAt, text, geoPoint, isRetweet, lang)
+
+case class GeoReferencedTweet(
+  id: Long,
+  createdAt: LocalDateTime,
+  text: String,
+  geoPoint: Option[GeoPoint],
+  isRetweet: Boolean,
+  lang: String,
+  gname: String
+) extends BaseTweet(id, createdAt, text, geoPoint, isRetweet, lang)
+
+object Tweet {
+  def fromStatus(status:Status): Tweet = {
     val geoLocation = status.getGeoLocation
     val geoPoint = if (geoLocation == null) {
       None
     } else {
       Some(GeoPoint(geoLocation.getLatitude, geoLocation.getLongitude))
     }
-    Drop(
+    Tweet(
       status.getId,
       status.getCreatedAt.toInstant.atZone(ZoneId.of("Z")).toLocalDateTime,
       status.getText,
       geoPoint,
-      status.isRetweet,
+      status.isRetweeted,
       status.getLang
     )
   }
 }
 
-@ImplementedBy(classOf[DropRepositoryImpl])
+@ImplementedBy(classOf[TweetRepositoryImpl])
 trait DropRepository {
-  def insert(drop: Drop): Try[Unit]
-  def findByTweetId(dropId: Long): Try[Option[Drop]]
+  def insert(drop: Tweet): Try[Unit]
+  def findByTweetId(dropId: Long): Try[Option[Tweet]]
 }
 
-trait DropRepositoryTrait extends DropRepository {
+trait TweetRepositoryTrait extends DropRepository {
 
   val log = Logger("drop-repository")
 
   val database: Database
 
-  override def insert(drop: Drop): Try[Unit] = Try {
-    val point = drop.geoPoint.get
+  override def insert(tweet: Tweet): Try[Unit] = Try {
+    val point = tweet.geoPoint.get
     database.withConnection { implicit conn =>
       val roundLat = BigDecimal(point.lat).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
       val roundLong = BigDecimal(point.long).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
       val pointStr = s"POINT($roundLong $roundLat)"
-      log.info(s"inserting drop ${drop.readable}")
+      log.info(s"inserting tweet ${tweet.readable}")
       SQL"""INSERT INTO tweet (tweet_id, created_at, text, point, is_retweet, lang, gid, gname)
-           SELECT ${drop.id}, ${drop.createdAt}, ${drop.text}, POINT($roundLong, $roundLat), ${drop.isRetweet}, ${drop.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
+           SELECT ${tweet.id}, ${tweet.createdAt}, ${tweet.text}, POINT($roundLong, $roundLat), ${tweet.isRetweet}, ${tweet.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
     }
     ()
   }
@@ -82,7 +101,7 @@ trait DropRepositoryTrait extends DropRepository {
       }
     }
 
-  val dropParser =
+  val tweetParser =
     get[Long]("id") ~
     get[LocalDateTime]("created_at") ~
     get[String]("text") ~
@@ -90,22 +109,22 @@ trait DropRepositoryTrait extends DropRepository {
     get[Boolean]("is_retweet") ~
     get[String]("lang") map {
       case id ~ createdAt ~ text ~ point ~ isRetweet ~ lang =>
-        Drop(id, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang)
+        Tweet(id, createdAt, text, Some(GeoPoint(point.y, point.x)), isRetweet, lang)
     }
 
-  override def findByTweetId(tweetId: Long):Try[Option[Drop]] = Try {
+  override def findByTweetId(tweetId: Long):Try[Option[Tweet]] = Try {
     database.withConnection { implicit  conn =>
       log.info(s"retrieving drop with tweet_id $tweetId")
       SQL"""
         SELECT id, created_at, text, point, is_retweet, lang
         FROM Tweet
         WHERE tweet_id = $tweetId
-      """.as(dropParser.*).headOption
+      """.as(tweetParser.*).headOption
     }
   }
 
 }
 
-class DropRepositoryImpl @Inject()
+class TweetRepositoryImpl @Inject()
 (val database: Database)
-extends DropRepositoryTrait
+extends TweetRepositoryTrait

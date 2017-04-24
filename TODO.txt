@@ -1,7 +1,6 @@
 # refactor Drop to use Tweet and GeoTweet
-# finish tests
+# add more get endpoints (last insert, version, max count)
 # remove hardcoded london bounding box
 # json as return objects
-# add more get endpoints (last insert, version, max count)
 # deploy to ECR / ECS
 # let it run for a week
