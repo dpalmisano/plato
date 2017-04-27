@@ -138,7 +138,6 @@ trait TweetRepositoryTrait extends TweetRepository {
       """.as(localDateTimeParser.*).head
     }
   }
-
 }
 
 class TweetRepositoryImpl @Inject()
