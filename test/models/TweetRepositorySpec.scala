@@ -97,6 +97,11 @@ with MockitoSugar {
       findResult should be a 'success
       findResult.get.get.id shouldEqual secondTweetId
       findResult.get.get.createdAt shouldEqual secondTweetDate
+
+      val latestResult = repository.latest()
+      latestResult should be a 'success
+      latestResult.get.get.id shouldEqual secondTweetId
+      latestResult.get.get.createdAt shouldEqual secondTweetDate
   }
 
 }

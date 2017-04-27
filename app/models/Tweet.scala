@@ -70,7 +70,8 @@ object Tweet {
 trait TweetRepository {
   def insert(tweet: Tweet): Try[Unit]
   def findByTweetId(tweetId: Long): Try[Option[GeoReferencedTweet]]
-  def latest(): Try[LocalDateTime]
+  def latest(): Try[Option[GeoReferencedTweet]]
+  def count(): Try[Int]
 }
 
 trait TweetRepositoryTrait extends TweetRepository {
@@ -131,11 +132,22 @@ trait TweetRepositoryTrait extends TweetRepository {
     }
   }
 
-  override def latest(): Try[LocalDateTime] = Try {
+  override def latest(): Try[Option[GeoReferencedTweet]] = Try {
     database.withConnection {  implicit conn =>
       SQL"""
-           SELECT max(created_at) as created_at FROM tweet
-      """.as(localDateTimeParser.*).head
+           SELECT tweet_id, created_at, text, point, is_retweet, lang, gid, gname
+           FROM tweet
+           ORDER BY created_at DESC LIMIT 1;
+      """.as(geoReferencedTweetParser.*).headOption
+    }
+  }
+
+  override def count(): Try[Int] = Try {
+    database.withConnection { implicit conn =>
+      SQL"""
+           SELECT COUNT(*)
+           FROM tweet;
+      """.as(SqlParser.scalar[Int].single)
     }
   }
 }

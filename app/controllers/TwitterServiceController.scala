@@ -1,6 +1,5 @@
 package controllers
 
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 import models.TweetRepository
@@ -8,7 +7,6 @@ import play.api.mvc.{Action, AnyContent, Controller}
 import services.TwitterService
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 class TwitterServiceController @Inject()
 (val twitterService: TwitterService)
@@ -43,12 +41,18 @@ trait TwitterServiceControllerTrait extends Controller {
   }
 
   def lastInsert: Action[AnyContent] = Action.async {
-    val lastInsertFuture = Future {
-      tweetRepository.latest()
+    twitterService.latest().map {
+      case TwitterServiceLatestResult.Successful(geoReferencedTweet) => Ok(geoReferencedTweet.readable)
+      case TwitterServiceLatestResult.Failed => {
+        InternalServerError("isr")
+      }
     }
-    lastInsertFuture.map {
-      case Success(localDateTime) => Ok(localDateTime.toString)
-      case Failure(t) => InternalServerError("shit")
+  }
+
+  def count: Action[AnyContent] = Action.async {
+    twitterService.count().map {
+      case count: Int => Ok(count)
+      case _ => InternalServerError("mah")
     }
   }
 

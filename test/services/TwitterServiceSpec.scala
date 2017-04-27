@@ -1,13 +1,12 @@
 package services
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import models.TweetRepository
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.mock.MockitoSugar
-
 import org.mockito.Mockito.{times, verify}
-
 import twitter4j.{FilterQuery, TwitterStream}
 
 class TwitterServiceSpec
@@ -21,10 +20,12 @@ with ScalaFutures
 
   private def service(
     mockTwitterStream: TwitterStream,
-    mockTwitterListener: TwitterListener = mock[TwitterListener]
+    mockTwitterListener: TwitterListener = mock[TwitterListener],
+    mockTweetRepository: TweetRepository = mock[TweetRepository]
   ) = new TwitterService {
     override val twitterStream = mockTwitterStream
     override val twitterListener = mockTwitterListener
+    override val tweetRepository = mockTweetRepository
     override implicit val context = global
   }
 
