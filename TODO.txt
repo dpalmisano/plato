@@ -1,6 +1,7 @@
 # add more get endpoints (group by)
 # remove hardcoded london bounding box
 # json as return objects
+# twitter credentials as env variables
 # general tidy up
 # deploy to ECR / ECS
 # let it run for a week
