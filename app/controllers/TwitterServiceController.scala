@@ -51,7 +51,7 @@ trait TwitterServiceControllerTrait extends Controller {
 
   def count: Action[AnyContent] = Action.async {
     twitterService.count().map {
-      case count: Int => Ok(count)
+      case count: Int => Ok(count.toString)
       case _ => InternalServerError("mah")
     }
   }

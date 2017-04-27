@@ -3,7 +3,7 @@ import com.typesafe.sbt.packager.docker._
 name := """plato"""
 organization := "com.dpalmisano"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, BuildInfoPlugin, JavaServerAppPackaging, DockerPlugin, GitVersioning, GitBranchPrompt)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, BuildInfoPlugin, JavaServerAppPackaging, DockerPlugin, GitVersioning, GitBranchPrompt,ScoverageSbtPlugin)
 
 scalaVersion := "2.11.8"
 
@@ -21,6 +21,8 @@ libraryDependencies ++= Seq(
 git.useGitDescribe := true
 
 git.baseVersion := "0.0.0"
+
+coverageEnabled := true
 
 javaOptions += "-Dconfig.resource=test.conf"
 javaOptions += "-Dlogger.resource=logback-test.xml"
