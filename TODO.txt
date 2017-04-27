@@ -1,4 +1,4 @@
-# add more get endpoints (max count, group by)
+# add more get endpoints (group by)
 # remove hardcoded london bounding box
 # json as return objects
 # general tidy up
