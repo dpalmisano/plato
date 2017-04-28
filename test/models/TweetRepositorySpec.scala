@@ -104,4 +104,39 @@ with MockitoSugar {
       latestResult.get.get.createdAt shouldEqual secondTweetDate
   }
 
+  it should "get the number of tweets" in withRepository {
+    repository =>
+      val countResult = repository.count()
+      countResult should be a 'success
+      countResult.get shouldEqual 0
+
+      val insertResult = repository.insert(testLondonTweet)
+      insertResult should be a 'success
+
+      val nonZeroCuntResult = repository.count()
+      nonZeroCuntResult should be a 'success
+      nonZeroCuntResult.get shouldEqual 1
+  }
+
+  it should "get the language breakdown when there are no tweets" in withRepository {
+    repository =>
+      val langBreakdownResult = repository.langBreakdown()
+      langBreakdownResult should be a 'success
+      langBreakdownResult.get shouldEqual Map.empty
+  }
+
+  it should "get the right language breakdown" in withRepository {
+    repository =>
+
+      val italianTweet = testLondonTweet.copy(lang = "it")
+      repository.insert(italianTweet) should be a 'success
+      val spanishTweet = testLondonTweet.copy(lang = "es")
+      repository.insert(spanishTweet) should be a 'success
+
+
+      val langBreakdownResult = repository.langBreakdown()
+      langBreakdownResult should be a 'success
+      langBreakdownResult.get shouldEqual Map("es" -> 1, "it" -> 1)
+  }
+
 }

@@ -72,6 +72,7 @@ trait TweetRepository {
   def findByTweetId(tweetId: Long): Try[Option[GeoReferencedTweet]]
   def latest(): Try[Option[GeoReferencedTweet]]
   def count(): Try[Int]
+  def langBreakdown(): Try[Map[String, Int]]
 }
 
 trait TweetRepositoryTrait extends TweetRepository {
@@ -150,6 +151,18 @@ trait TweetRepositoryTrait extends TweetRepository {
       """.as(SqlParser.scalar[Int].single)
     }
   }
+
+  override def langBreakdown(): Try[Map[String, Int]] = Try {
+    database.withConnection { implicit conn =>
+      SQL"""
+        SELECT lang, count(*) AS count
+        FROM tweet
+        GROUP BY lang
+        ORDER BY count DESC, lang ASC;
+      """.as((str("lang") ~ int("count")).map(flatten).*).toMap
+    }
+  }
+
 }
 
 class TweetRepositoryImpl @Inject()
