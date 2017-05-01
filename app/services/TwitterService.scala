@@ -54,10 +54,10 @@ trait TwitterService {
     /**
       * Greater London bounding box
       */
-    val p1 = conf.getDoubleSeq("bounding.london.p1").get.map(_.toDouble).toArray // Array(-0.489, 51.28)
-    val p2 = conf.getDoubleSeq("bounding.london.p2").get.map(_.toDouble).toArray // Array(0.236, 51.686)
+    val p1 = conf.getDoubleSeq("bounding.london.p1").get.map(_.toDouble).toArray
+    val p2 = conf.getDoubleSeq("bounding.london.p2").get.map(_.toDouble).toArray
 
-    log.info(s"listening to tweets from the bounding box: $p1, $p2")
+    log.info(s"listening to tweets from the bounding box: [${p1.mkString(",")}], [${p2.mkString(",")}]")
     twitterStream.filter(new FilterQuery().locations(p1, p2))
     Future.successful(TwitterServiceStartStatus.Successful(LocalDateTime.now()))
   }
