@@ -5,7 +5,7 @@ import javax.inject.{Inject, Singleton}
 
 import com.google.inject.ImplementedBy
 import models.{GeoReferencedTweet, TweetRepository}
-import play.api.Logger
+import play.api.{Configuration, Logger}
 import twitter4j.{FilterQuery, TwitterStream}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,6 +44,7 @@ trait TwitterService {
   def twitterStream: TwitterStream
   def twitterListener: TwitterListener
   def tweetRepository: TweetRepository
+  def conf: Configuration
   implicit def context: ExecutionContext
 
   def start(): Future[TwitterServiceStartStatus] = {
@@ -53,9 +54,10 @@ trait TwitterService {
     /**
       * Greater London bounding box
       */
-    val p1 = Array(-0.489, 51.28)
-    val p2 = Array(0.236, 51.686)
+    val p1 = conf.getDoubleSeq("bounding.london.p1").get.map(_.toDouble).toArray // Array(-0.489, 51.28)
+    val p2 = conf.getDoubleSeq("bounding.london.p2").get.map(_.toDouble).toArray // Array(0.236, 51.686)
 
+    log.info(s"listening to tweets from the bounding box: $p1, $p2")
     twitterStream.filter(new FilterQuery().locations(p1, p2))
     Future.successful(TwitterServiceStartStatus.Successful(LocalDateTime.now()))
   }
@@ -93,5 +95,6 @@ class TwitterServiceImpl @Inject()
 (val twitterStream: TwitterStream)
 (val twitterListener: TwitterListener)
 (val tweetRepository: TweetRepository)
+(val conf: Configuration)
 (implicit val context: ExecutionContext)
 extends TwitterService {}

@@ -2,6 +2,7 @@ package services
 
 import java.time.LocalDateTime
 
+import com.typesafe.config.ConfigFactory
 import models.{GeoPoint, GeoReferencedTweet, TweetRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -9,6 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito.{times, verify, when}
+import play.api.Configuration
 import twitter4j.{FilterQuery, TwitterStream}
 
 import scala.util.{Failure, Success}
@@ -25,11 +27,16 @@ with ScalaFutures
   private def service(
     mockTwitterStream: TwitterStream,
     mockTwitterListener: TwitterListener = mock[TwitterListener],
-    mockTweetRepository: TweetRepository = mock[TweetRepository]
+    mockTweetRepository: TweetRepository = mock[TweetRepository],
+    mockConf: Configuration = mock[Configuration]
   ) = new TwitterService {
     override val twitterStream = mockTwitterStream
     override val twitterListener = mockTwitterListener
     override val tweetRepository = mockTweetRepository
+    override def conf: Configuration = {
+      val testConfig = ConfigFactory.load("test.conf")
+      Configuration(testConfig)
+    }
     override implicit val context = global
   }
 
