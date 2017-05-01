@@ -1,4 +1,3 @@
-# remove hardcoded london bounding box (put it in conf)
 # twitter credentials as env variables
 # general tidy up
 # deploy to ECR / ECS
