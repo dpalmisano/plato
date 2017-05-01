@@ -3,6 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import models.TweetRepository
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Controller}
 import services.TwitterService
@@ -17,6 +18,8 @@ class TwitterServiceController @Inject()
 
 trait TwitterServiceControllerTrait extends Controller {
 
+  private val log = Logger("twitter-service-controller")
+
   import services.TwitterService._
   import controllers.json.ControllerWrites._
 
@@ -29,7 +32,8 @@ trait TwitterServiceControllerTrait extends Controller {
       case TwitterServiceStartStatus.Successful(startedAt) =>
         Ok(Json.toJson(startedAt))
       case TwitterServiceStartStatus.Failed => {
-        InternalServerError("isr")
+        log.error("error while starting twitter")
+        InternalServerError("internal server error")
       }
     }
   }
@@ -39,7 +43,10 @@ trait TwitterServiceControllerTrait extends Controller {
     blockingResult.value.get.get match {
       case TwitterServiceStopStatus.Successful(stoppedAt) =>
         Ok(Json.toJson(stoppedAt))
-      case _ => InternalServerError("isr")
+      case _ => {
+        log.error("error while stopping twitter")
+        InternalServerError("internal server error")
+      }
     }
   }
 
@@ -50,7 +57,9 @@ trait TwitterServiceControllerTrait extends Controller {
       case TwitterServiceLatestResult.NoTweetsAvailable =>
         NoContent
     }.recover {
-      case t => InternalServerError("internal server error")
+      case t =>
+        log.error("error while getting last inserted tweet", t)
+        InternalServerError("internal server error")
     }
   }
 
@@ -60,7 +69,9 @@ trait TwitterServiceControllerTrait extends Controller {
         "numberOfTweets" -> count
       ))
     }.recover {
-      case t => InternalServerError("internal server error")
+      case t =>
+        log.error("error while getting total number of tweets", t)
+        InternalServerError("internal server error")
     }
   }
 
@@ -70,7 +81,9 @@ trait TwitterServiceControllerTrait extends Controller {
         Json.toJson(breakdown)
       )
     }.recover {
-      case t => InternalServerError("internal server error")
+      case t =>
+        log.error("error while getting language breakdown", t)
+        InternalServerError("internal server error")
     }
   }
 

@@ -74,7 +74,7 @@ with ScalaFutures {
     val request = FakeRequest(GET, "/start")
     val result = call(controller.start, request)
     status(result) shouldEqual INTERNAL_SERVER_ERROR
-    contentAsString(result) shouldEqual "isr"
+    contentAsString(result) shouldEqual "internal server error"
   }
 
   it should "stop listening to Twitter" in {
@@ -98,7 +98,7 @@ with ScalaFutures {
     val request = FakeRequest(GET, "/stop")
     val result = call(controller.stop, request)
     status(result) shouldEqual INTERNAL_SERVER_ERROR
-    contentAsString(result) shouldEqual "isr"
+    contentAsString(result) shouldEqual "internal server error"
   }
 
   it should "return number of tweets" in {
