@@ -47,9 +47,10 @@ trait TwitterServiceControllerTrait extends Controller {
     twitterService.latest().map {
       case TwitterServiceLatestResult.Successful(geoReferencedTweet) =>
         Ok(Json.toJson(geoReferencedTweet))
-      case TwitterServiceLatestResult.NoTweetsAvailable => {
-        InternalServerError("nta")
-      }
+      case TwitterServiceLatestResult.NoTweetsAvailable =>
+        NoContent
+    }.recover {
+      case t => InternalServerError("internal server error")
     }
   }
 

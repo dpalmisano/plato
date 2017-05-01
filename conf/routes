@@ -8,3 +8,4 @@ GET     /version                    controllers.Application.version
 GET /start                          controllers.TwitterServiceController.start
 GET /stop                           controllers.TwitterServiceController.stop
 GET /count                          controllers.TwitterServiceController.count
+GET /latest                         controllers.TwitterServiceController.lastInsert
