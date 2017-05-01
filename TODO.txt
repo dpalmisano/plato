@@ -1,4 +1,3 @@
-# twitter credentials as env variables
 # general tidy up
 # deploy to ECR / ECS
 # let it run for a week

@@ -13,7 +13,7 @@ object TwitterStreamFactory {
   val twitterStream: TwitterStream = {
     val configFile = ConfigFactory.load("prod.conf")
     val config = play.api.Configuration(configFile)
-    log.info("creating twitter client")
+    log.info("instantiating Twitter client")
     val configuration: Configuration = new ConfigurationBuilder().setDebugEnabled(true)
       .setOAuthConsumerKey(config.getString("twitter.oauth.consumer.key").get)
       .setOAuthConsumerSecret(config.getString("twitter.oauth.consumer.secret").get)

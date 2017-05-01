@@ -43,18 +43,19 @@ trait TwitterServiceControllerTrait extends Controller {
     blockingResult.value.get.get match {
       case TwitterServiceStopStatus.Successful(stoppedAt) =>
         Ok(Json.toJson(stoppedAt))
-      case _ => {
+      case _ =>
         log.error("error while stopping twitter")
         InternalServerError("internal server error")
-      }
     }
   }
 
   def lastInsert: Action[AnyContent] = Action.async {
     twitterService.latest().map {
       case TwitterServiceLatestResult.Successful(geoReferencedTweet) =>
+        log.info("returning latest tweet")
         Ok(Json.toJson(geoReferencedTweet))
       case TwitterServiceLatestResult.NoTweetsAvailable =>
+        log.info("no tweets found.")
         NoContent
     }.recover {
       case t =>
@@ -65,9 +66,9 @@ trait TwitterServiceControllerTrait extends Controller {
 
   def count: Action[AnyContent] = Action.async {
     twitterService.count().map {
-      case count: Int => Ok(Json.obj(
-        "numberOfTweets" -> count
-      ))
+      count: Int =>
+        log.info("returning number of tweets")
+        Ok(Json.obj("numberOfTweets" -> count))
     }.recover {
       case t =>
         log.error("error while getting total number of tweets", t)
@@ -77,9 +78,9 @@ trait TwitterServiceControllerTrait extends Controller {
 
   def langBreakdown: Action[AnyContent] = Action.async {
     twitterService.langBreakdown().map {
-      case breakdown: Map[String, Int] => Ok(
-        Json.toJson(breakdown)
-      )
+      breakdown: Map[String, Int] =>
+        log.info("returning language breakdown")
+        Ok(Json.toJson(breakdown))
     }.recover {
       case t =>
         log.error("error while getting language breakdown", t)

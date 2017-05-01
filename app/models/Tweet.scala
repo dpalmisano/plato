@@ -116,8 +116,20 @@ trait TweetRepositoryTrait extends TweetRepository {
       val roundLong = BigDecimal(point.long).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
       val pointStr = s"POINT($roundLong $roundLat)"
       log.info(s"inserting tweet ${tweet.readable}")
-      SQL"""INSERT INTO tweet (tweet_id, created_at, text, point, is_retweet, lang, gid, gname)
-           SELECT ${tweet.id}, ${tweet.createdAt}, ${tweet.text}, POINT($roundLong, $roundLat), ${tweet.isRetweet}, ${tweet.lang}, london.gid, london.name FROM london WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326)); """.execute()
+      SQL"""
+            INSERT INTO tweet (tweet_id, created_at, text, point, is_retweet, lang, gid, gname)
+            SELECT
+              ${tweet.id},
+              ${tweet.createdAt},
+              ${tweet.text},
+              POINT($roundLong, $roundLat),
+              ${tweet.isRetweet},
+              ${tweet.lang},
+              london.gid,
+              london.name
+             FROM london
+             WHERE ST_Contains(london.geom, St_SetSrid($pointStr::geometry, 4326));
+        """.execute()
     }
     ()
   }
