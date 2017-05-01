@@ -23,8 +23,6 @@ trait TwitterServiceControllerTrait extends Controller {
   implicit val context: ExecutionContext
 
   def twitterService: TwitterService
-  def tweetRepository: TweetRepository
-
 
   def start: Action[AnyContent] = Action.async {
     twitterService.start().map {
@@ -57,8 +55,11 @@ trait TwitterServiceControllerTrait extends Controller {
 
   def count: Action[AnyContent] = Action.async {
     twitterService.count().map {
-      case count: Int => Ok(count.toString)
-      case _ => InternalServerError("mah")
+      case count: Int => Ok(Json.obj(
+        "numberOfTweets" -> count
+      ))
+    }.recover {
+      case t => InternalServerError("internal server error")
     }
   }
 

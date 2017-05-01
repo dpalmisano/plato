@@ -6,7 +6,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import models.TweetRepository
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
@@ -31,9 +30,10 @@ with ScalaFutures {
   def testController(mockTwitterService: TwitterService) =
     new TwitterServiceControllerTrait {
       override val twitterService = mockTwitterService
-      override val tweetRepository = mock[TweetRepository]
       override implicit val context = global
   }
+
+  private case object IntentionalException extends Exception("intentional-exception")
 
   private val testCreatedAt = LocalDateTime.now()
 
@@ -83,6 +83,32 @@ with ScalaFutures {
     val result = call(controller.stop, request)
     status(result) shouldEqual INTERNAL_SERVER_ERROR
     contentAsString(result) shouldEqual "isr"
+  }
+
+  it should "return number of tweets" in {
+    val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.count())
+      .thenReturn(Future.successful(1))
+    val controller = testController(mockTwitterService)
+
+    val request = FakeRequest(GET, "/count")
+    val result = call(controller.count, request)
+    status(result) shouldEqual OK
+    contentAsJson(result) shouldEqual Json.obj(
+      "numberOfTweets" -> 1
+    )
+  }
+
+  it should "return INTERNAL_SERVER_ERROR when number of tweets fails" in {
+    val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.count())
+      .thenReturn(Future.failed(IntentionalException))
+    val controller = testController(mockTwitterService)
+
+    val request = FakeRequest(GET, "/count")
+    val result = call(controller.count, request)
+    status(result) shouldEqual INTERNAL_SERVER_ERROR
+    // contentAsString(result) shouldEqual "internal server error"
   }
 
 }
