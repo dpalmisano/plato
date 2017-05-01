@@ -90,7 +90,7 @@ with ScalaFutures
     result.futureValue shouldEqual 1
   }
 
-  it should "manage a failure when repository fails during count" in {
+  it should "return INTENTIONAL exception when repo fails on count" in {
     val mockTwitterStream = mock[TwitterStream]
     val mockTweetRepository = mock[TweetRepository]
     when(mockTweetRepository.count()).thenReturn(Failure(IntentionalException))
@@ -120,13 +120,37 @@ with ScalaFutures
     result.futureValue shouldEqual TwitterServiceLatestResult.NoTweetsAvailable
   }
 
-  it should "do something" in {
+  it should "return INTENTIONAL exception when repo fails on latest tweet" in {
     val mockTwitterStream = mock[TwitterStream]
     val mockTweetRepository = mock[TweetRepository]
     when(mockTweetRepository.latest()).thenReturn(Failure(IntentionalException))
     val svc = service(mockTwitterStream, mockTweetRepository = mockTweetRepository)
 
     val result = svc.latest()
+    result.failed.futureValue shouldEqual IntentionalException
+  }
+
+  it should "return lang breakdown" in {
+    val testLangBreakdownMap = Map(
+      "it" -> 2,
+      "en" -> 1
+    )
+    val mockTwitterStream = mock[TwitterStream]
+    val mockTweetRepository = mock[TweetRepository]
+    when(mockTweetRepository.langBreakdown()).thenReturn(Success(testLangBreakdownMap))
+    val svc = service(mockTwitterStream, mockTweetRepository = mockTweetRepository)
+
+    val result = svc.langBreakdown()
+    result.futureValue shouldEqual testLangBreakdownMap
+  }
+
+  it should "manage an error on lang breakdown" in {
+    val mockTwitterStream = mock[TwitterStream]
+    val mockTweetRepository = mock[TweetRepository]
+    when(mockTweetRepository.langBreakdown()).thenReturn(Failure(IntentionalException))
+    val svc = service(mockTwitterStream, mockTweetRepository = mockTweetRepository)
+
+    val result = svc.langBreakdown()
     result.failed.futureValue shouldEqual IntentionalException
   }
 
