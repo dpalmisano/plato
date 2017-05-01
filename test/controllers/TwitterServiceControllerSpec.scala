@@ -48,6 +48,11 @@ with ScalaFutures {
     "test-gname"
   )
 
+  private val testLangBreakDownMap = Map(
+    "it" -> 2,
+    "en" -> 1
+  )
+
   "TwitterServiceController" should "start listening to Twitter" in {
     val mockTwitterService = mock[TwitterService]
     when(mockTwitterService.start())
@@ -155,6 +160,42 @@ with ScalaFutures {
 
     val request = FakeRequest(GET, "/latest")
     val result = call(controller.lastInsert, request)
+    status(result) shouldEqual INTERNAL_SERVER_ERROR
+    contentAsString(result) shouldEqual "internal server error"
+  }
+
+  it should "return language breakdown" in {
+    val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.langBreakdown())
+      .thenReturn(Future.successful(testLangBreakDownMap))
+    val controller = testController(mockTwitterService)
+
+    val request = FakeRequest(GET, "/breakdown")
+    val result = call(controller.langBreakdown, request)
+    status(result) shouldEqual OK
+    contentAsJson(result) shouldEqual Json.toJson(testLangBreakDownMap)
+  }
+
+  it should "return an empty language breakdown" in {
+    val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.langBreakdown())
+      .thenReturn(Future.successful(Map.empty[String, Int]))
+    val controller = testController(mockTwitterService)
+
+    val request = FakeRequest(GET, "/breakdown")
+    val result = call(controller.langBreakdown, request)
+    status(result) shouldEqual OK
+    contentAsJson(result) shouldEqual Json.toJson(Map.empty[String, Int])
+  }
+
+  it should "return INTERNAL_SERVER_ERROR when language breakdown fails" in {
+    val mockTwitterService = mock[TwitterService]
+    when(mockTwitterService.langBreakdown())
+      .thenReturn(Future.failed(IntentionalException))
+    val controller = testController(mockTwitterService)
+
+    val request = FakeRequest(GET, "/breakdown")
+    val result = call(controller.langBreakdown, request)
     status(result) shouldEqual INTERNAL_SERVER_ERROR
     contentAsString(result) shouldEqual "internal server error"
   }

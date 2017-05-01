@@ -66,8 +66,11 @@ trait TwitterServiceControllerTrait extends Controller {
 
   def langBreakdown: Action[AnyContent] = Action.async {
     twitterService.langBreakdown().map {
-      case breakdown: Map[String, Int] => Ok("breakdown")
-      case _ => InternalServerError("mah")
+      case breakdown: Map[String, Int] => Ok(
+        Json.toJson(breakdown)
+      )
+    }.recover {
+      case t => InternalServerError("internal server error")
     }
   }
 
