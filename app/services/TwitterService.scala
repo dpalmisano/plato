@@ -1,5 +1,6 @@
 package services
 
+import java.time.LocalDateTime
 import javax.inject.{Inject, Singleton}
 
 import com.google.inject.ImplementedBy
@@ -13,14 +14,14 @@ object TwitterService {
   sealed trait TwitterServiceStartStatus
 
   object TwitterServiceStartStatus {
-    case object Successful  extends TwitterServiceStartStatus
-    case object Failed      extends TwitterServiceStartStatus
+    case class  Successful(startedAt: LocalDateTime) extends TwitterServiceStartStatus
+    case object Failed extends TwitterServiceStartStatus
   }
 
   sealed trait TwitterServiceStopStatus
 
   object TwitterServiceStopStatus {
-    case object Successful  extends TwitterServiceStopStatus
+    case class Successful(stoppedAt: LocalDateTime)  extends TwitterServiceStopStatus
     case object Failed      extends TwitterServiceStopStatus
   }
 
@@ -28,7 +29,7 @@ object TwitterService {
 
   object TwitterServiceLatestResult {
     case class Successful(geoReferencedTweet: GeoReferencedTweet) extends TwitterServiceLatestResult
-    case object Failed extends TwitterServiceLatestResult
+    case object NoTweetsAvailable extends TwitterServiceLatestResult
   }
 
 }
@@ -56,26 +57,29 @@ trait TwitterService {
     val p2 = Array(0.236, 51.686)
 
     twitterStream.filter(new FilterQuery().locations(p1, p2))
-
-    Future.successful(TwitterServiceStartStatus.Successful)
+    Future.successful(TwitterServiceStartStatus.Successful(LocalDateTime.now()))
   }
 
   def stop(): Future[TwitterServiceStopStatus] = {
     log.info("stop listening to Twitter")
     twitterStream.cleanUp()
     twitterStream.shutdown()
-    Future.successful(TwitterServiceStopStatus.Successful)
+    Future.successful(TwitterServiceStopStatus.Successful(LocalDateTime.now()))
   }
 
   def latest(): Future[TwitterServiceLatestResult] = {
     findLatest().map {
       case Some(geoReferencedTweet) => TwitterServiceLatestResult.Successful(geoReferencedTweet)
-      case None => TwitterServiceLatestResult.Failed
+      case None => TwitterServiceLatestResult.NoTweetsAvailable
     }
   }
 
   def count(): Future[Int] = Future {
     tweetRepository.count().get
+  }
+
+  def langBreakdown(): Future[Map[String, Int]] = Future {
+    tweetRepository.langBreakdown().get
   }
 
   private def findLatest(): Future[Option[GeoReferencedTweet]] = Future {

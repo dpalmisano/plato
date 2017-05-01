@@ -1,5 +1,7 @@
 package controllers
 
+import java.time.LocalDateTime
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import akka.actor.ActorSystem
@@ -9,6 +11,7 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
 import org.mockito.Mockito.when
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.api.test.FakeRequest
 import services.TwitterService
@@ -20,6 +23,7 @@ with MockitoSugar
 with ScalaFutures {
 
   import TwitterService._
+  import controllers.json.ControllerWrites._
 
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
@@ -31,16 +35,18 @@ with ScalaFutures {
       override implicit val context = global
   }
 
+  private val testCreatedAt = LocalDateTime.now()
+
   "TwitterServiceController" should "start listening to Twitter" in {
     val mockTwitterService = mock[TwitterService]
     when(mockTwitterService.start())
-      .thenReturn(Future.successful(TwitterServiceStartStatus.Successful))
+      .thenReturn(Future.successful(TwitterServiceStartStatus.Successful(testCreatedAt)))
     val controller = testController(mockTwitterService)
 
     val request = FakeRequest(GET, "/start")
     val result = call(controller.start, request)
     status(result) shouldEqual OK
-    contentAsString(result) shouldEqual "yo"
+    contentAsJson(result) shouldEqual Json.toJson(testCreatedAt)
   }
 
   it should "return INTERNAL_SERVER_ERROR when twitter service start fails" in {
@@ -58,13 +64,13 @@ with ScalaFutures {
   it should "stop listening to Twitter" in {
     val mockTwitterService = mock[TwitterService]
     when(mockTwitterService.stop())
-      .thenReturn(Future.successful(TwitterServiceStopStatus.Successful))
+      .thenReturn(Future.successful(TwitterServiceStopStatus.Successful(testCreatedAt)))
     val controller = testController(mockTwitterService)
 
     val request = FakeRequest(GET, "/stop")
     val result = call(controller.stop, request)
     status(result) shouldEqual OK
-    contentAsString(result) shouldEqual "stopped"
+    contentAsJson(result) shouldEqual Json.toJson(testCreatedAt)
   }
 
   it should "return INTERNAL_SERVER_ERROR when twitter service stop fails" in {

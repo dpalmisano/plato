@@ -3,6 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import models.TweetRepository
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Controller}
 import services.TwitterService
 
@@ -17,16 +18,19 @@ class TwitterServiceController @Inject()
 trait TwitterServiceControllerTrait extends Controller {
 
   import services.TwitterService._
+  import controllers.json.ControllerWrites._
 
   implicit val context: ExecutionContext
 
   def twitterService: TwitterService
   def tweetRepository: TweetRepository
 
+
   def start: Action[AnyContent] = Action.async {
     twitterService.start().map {
-      case TwitterServiceStartStatus.Successful => Ok("yo")
-      case TwitterServiceStartStatus.Failed     => {
+      case TwitterServiceStartStatus.Successful(startedAt) =>
+        Ok(Json.toJson(startedAt))
+      case TwitterServiceStartStatus.Failed => {
         InternalServerError("isr")
       }
     }
@@ -35,16 +39,18 @@ trait TwitterServiceControllerTrait extends Controller {
   def stop: Action[AnyContent] = Action {
     val blockingResult: Future[TwitterServiceStopStatus] = twitterService.stop()
     blockingResult.value.get.get match {
-      case TwitterServiceStopStatus.Successful => Ok("stopped")
+      case TwitterServiceStopStatus.Successful(stoppedAt) =>
+        Ok(Json.toJson(stoppedAt))
       case _ => InternalServerError("isr")
     }
   }
 
   def lastInsert: Action[AnyContent] = Action.async {
     twitterService.latest().map {
-      case TwitterServiceLatestResult.Successful(geoReferencedTweet) => Ok(geoReferencedTweet.readable)
-      case TwitterServiceLatestResult.Failed => {
-        InternalServerError("isr")
+      case TwitterServiceLatestResult.Successful(geoReferencedTweet) =>
+        Ok(Json.toJson(geoReferencedTweet))
+      case TwitterServiceLatestResult.NoTweetsAvailable => {
+        InternalServerError("nta")
       }
     }
   }
@@ -52,6 +58,13 @@ trait TwitterServiceControllerTrait extends Controller {
   def count: Action[AnyContent] = Action.async {
     twitterService.count().map {
       case count: Int => Ok(count.toString)
+      case _ => InternalServerError("mah")
+    }
+  }
+
+  def langBreakdown: Action[AnyContent] = Action.async {
+    twitterService.langBreakdown().map {
+      case breakdown: Map[String, Int] => Ok("breakdown")
       case _ => InternalServerError("mah")
     }
   }
