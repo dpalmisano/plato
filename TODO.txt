@@ -1,3 +1,2 @@
-# general tidy up
-# deploy to ECR / ECS
+# automate running on ECS
 # let it run for a week
